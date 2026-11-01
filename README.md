@@ -49,6 +49,7 @@ Run `supabase/migrations/001_initial_schema.sql` in the Supabase SQL editor. It 
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+GEMINI_API_KEY=
 OPENAI_API_KEY=
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=
@@ -63,7 +64,7 @@ VITE_APP_URL=http://localhost:5173
 3. Framework preset: Vite.
 4. Build command: `npm run build`.
 5. Output directory: `dist`.
-6. Add the environment variables above.
+6. Add the environment variables above. Set `GEMINI_API_KEY` as a server-only variable; never prefix it with `VITE_`.
 7. Configure the Supabase redirect URLs for the Vercel domain.
 8. Add the custom domain if required.
 
