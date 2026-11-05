@@ -46,3 +46,29 @@ create policy admin_all_memberships on memberships for all using (is_admin()) wi
 create policy admin_all_enquiries on enquiries for all using (is_admin()) with check (is_admin());
 create policy admin_all_notifications on notifications for all using (is_admin()) with check (is_admin());
 create policy admin_all_automation on automation_logs for all using (is_admin()) with check (is_admin());
+
+-- Keep investor/admin profile rows synchronized with new Supabase Auth users.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, auth
+as $$
+begin
+  insert into public.profiles (id, full_name, role)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1)),
+    'investor'
+  )
+  on conflict (id) do update
+    set full_name = excluded.full_name,
+        updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();

@@ -43,6 +43,20 @@ flowchart LR
 
 Run `supabase/migrations/001_initial_schema.sql` in the Supabase SQL editor. It contains profiles, properties, pools, memberships, transactions, enquiries, notifications, AI logs, automation logs, indexes, triggers and basic RLS policies. Configure auth email confirmations and environment variables before production use.
 
+For a complete first-time setup, including demo login accounts, run [supabase/complete_setup.sql](supabase/complete_setup.sql) once in Supabase SQL Editor instead of using the original migration alone.
+
+### Supabase login setup
+
+1. Open Supabase, then open SQL Editor and run the contents of `supabase/complete_setup.sql`.
+2. In Authentication > Providers, enable Email and disable confirmation requirements only while testing.
+3. In Authentication > URL Configuration, add `https://grupee.vercel.app` and your Vercel preview domains.
+4. Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in Vercel, then redeploy.
+5. Test:
+   - Investor: `investor@grupee.demo` / `GrupeeDemo!2026`
+   - Admin: `admin@grupee.demo` / `GrupeeDemo!2026`
+
+The setup script creates a profile automatically whenever a Supabase Auth user is created, seeds demo accounts, and enables row-level security policies. Change demo passwords before public launch.
+
 ## Required environment variables
 
 ```text
