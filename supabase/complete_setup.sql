@@ -1,6 +1,6 @@
 -- Run this entire script in Supabase: SQL Editor.
 -- It is safe to rerun. It creates the Grupee schema, auth profile trigger,
--- demo login users, policies, and sample pools.
+-- login profile setup, policies, and sample pools.
 
 create extension if not exists pgcrypto;
 
@@ -231,76 +231,9 @@ create policy admin_all_notifications on public.notifications
 create policy admin_all_automation on public.automation_logs
   for all using (public.is_admin()) with check (public.is_admin());
 
--- Demo accounts used by the login and signup screens.
--- Change these credentials before public production use.
-insert into auth.users (
-  instance_id, id, aud, role, email, encrypted_password,
-  email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-  created_at, updated_at, confirmation_token
-)
-values
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '11111111-1111-4111-8111-111111111111',
-    'authenticated', 'authenticated',
-    'investor@grupee.demo',
-    crypt('GrupeeDemo!2026', gen_salt('bf')),
-    now(),
-    '{"provider":"email","providers":["email"]}',
-    '{"full_name":"Demo Investor"}',
-    now(), now(), ''
-  ),
-  (
-    '00000000-0000-0000-0000-000000000000',
-    '22222222-2222-4222-8222-222222222222',
-    'authenticated', 'authenticated',
-    'admin@grupee.demo',
-    crypt('GrupeeDemo!2026', gen_salt('bf')),
-    now(),
-    '{"provider":"email","providers":["email"]}',
-    '{"full_name":"Demo Admin"}',
-    now(), now(), ''
-  )
-on conflict (id) do update
-  set email = excluded.email,
-      encrypted_password = excluded.encrypted_password,
-      email_confirmed_at = now(),
-      raw_app_meta_data = excluded.raw_app_meta_data,
-      raw_user_meta_data = excluded.raw_user_meta_data,
-      updated_at = now();
-
-insert into auth.identities (
-  provider_id, id, user_id, identity_data, provider,
-  last_sign_in_at, created_at, updated_at
-)
-values
-  (
-    '11111111-1111-4111-8111-111111111111',
-    gen_random_uuid(),
-    '11111111-1111-4111-8111-111111111111',
-    '{"sub":"11111111-1111-4111-8111-111111111111","email":"investor@grupee.demo","email_verified":true}',
-    'email', now(), now(), now()
-  ),
-  (
-    '22222222-2222-4222-8222-222222222222',
-    gen_random_uuid(),
-    '22222222-2222-4222-8222-222222222222',
-    '{"sub":"22222222-2222-4222-8222-222222222222","email":"admin@grupee.demo","email_verified":true}',
-    'email', now(), now(), now()
-  )
-on conflict (provider_id, provider) do update
-  set identity_data = excluded.identity_data,
-      last_sign_in_at = excluded.last_sign_in_at,
-      updated_at = excluded.updated_at;
-
-insert into public.profiles (id, full_name, role)
-values
-  ('11111111-1111-4111-8111-111111111111', 'Demo Investor', 'investor'),
-  ('22222222-2222-4222-8222-222222222222', 'Demo Admin', 'admin')
-on conflict (id) do update
-  set full_name = excluded.full_name,
-      role = excluded.role,
-      updated_at = now();
+-- Demo identities must be created in Supabase Dashboard > Authentication > Users.
+-- This avoids direct writes to auth.users/auth.identities, which can break across
+-- hosted Supabase Auth versions. The trigger above creates each public profile.
 
 insert into public.pools (
   id, title, slug, status, min_contribution, target_amount,
